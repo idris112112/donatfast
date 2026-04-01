@@ -45,6 +45,10 @@ def _generate_code():
     return f"{random.randint(0, 999999):06d}"
 
 
+def _remember_device(request):
+    request.session.set_expiry(settings.SESSION_COOKIE_AGE)
+
+
 def _owner_user(email=PRIMARY_OWNER_EMAIL):
     return User.objects.filter(email=email).first()
 
@@ -239,6 +243,7 @@ def complete_login(request):
     auth_code.consumed_at = timezone.now()
     auth_code.save(update_fields=["consumed_at"])
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+    _remember_device(request)
     return JsonResponse(
         {
             "status": "ok",
@@ -266,6 +271,7 @@ def complete_owner_setup(request):
     auth_code.consumed_at = timezone.now()
     auth_code.save(update_fields=["consumed_at"])
     login(request, owner, backend="django.contrib.auth.backends.ModelBackend")
+    _remember_device(request)
     return JsonResponse(
         {
             "status": "ok",
@@ -292,6 +298,7 @@ def owner_password_login(request):
         return _json_error("Неверный логин или пароль", status=403)
 
     login(request, authenticated, backend="django.contrib.auth.backends.ModelBackend")
+    _remember_device(request)
     return JsonResponse(
         {
             "status": "ok",
@@ -328,6 +335,7 @@ def complete_signup(request):
     auth_code.consumed_at = timezone.now()
     auth_code.save(update_fields=["consumed_at"])
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+    _remember_device(request)
     return JsonResponse(
         {
             "status": "ok",
